@@ -11,7 +11,6 @@ function initApp() {
 }
 
 let soundPlayed = false;
-let audioContext = null;
 
 // --- PLAYERS LOGIC ---
 const ROLES = [
@@ -242,7 +241,7 @@ window.removeCandidate = function(num) {
     }
 };
 
-// --- TIMER LOGIC (ОПТИМИЗИРОВАНО ДЛЯ iOS) ---
+// --- TIMER LOGIC ---
 let timerInterval;
 let seconds = 60;
 let isRunning = false;
@@ -253,50 +252,16 @@ function initTimer() {
     const pauseBtn = document.getElementById('btn-pause');
     const resetBtn = document.getElementById('btn-reset');
     const set130Btn = document.getElementById('btn-set130');
-    const timerBeep = document.getElementById('timer-beep');
+    const timerBeep = document.getElementById('timer-beep'); // Получаем аудио элемент
     
-    // Инициализация AudioContext для iOS
-    function initAudioContext() {
-        if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log("AudioContext создан");
-            } catch (e) {
-                console.log("Ошибка создания AudioContext:", e);
-            }
-        }
+    // Отладочная информация
+    console.log("Аудио элемент найден:", timerBeep);
+    console.log("Аудио готовность:", timerBeep?.readyState);
+    
+    // Предзагружаем звук для улучшения отзывчивости
+    if (timerBeep) {
+        timerBeep.load(); // Принудительная загрузка
     }
-    
-    // Активация аудио для iOS (требуется user gesture)
-    function activateAudioForIOS() {
-        // Активируем AudioContext
-        initAudioContext();
-        
-        // Пробуем активировать аудио элемент
-        if (timerBeep) {
-            timerBeep.volume = 0.001;
-            timerBeep.play().then(() => {
-                timerBeep.pause();
-                timerBeep.currentTime = 0;
-                timerBeep.volume = 1;
-            }).catch(e => {
-                console.log("iOS audio activation failed:", e);
-            });
-        }
-        
-        // Активируем AudioContext если он в suspended состоянии
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume().then(() => {
-                console.log("AudioContext активирован");
-            });
-        }
-    }
-    
-    // Активируем аудио при первом касании
-    document.addEventListener('touchstart', activateAudioForIOS, { once: true });
-    
-    // Активируем при клике на старт
-    startBtn.addEventListener('click', activateAudioForIOS);
 
     function updateDisplay() {
         const mins = Math.floor(seconds / 60);
@@ -306,71 +271,89 @@ function initTimer() {
         if (seconds <= 10 && seconds > 0) {
             display.classList.add('danger');
             
+            // Воспроизводим звук, когда осталось 10 секунд и звук ещё не играл
             if (!soundPlayed && isRunning) {
                 playBeepSound();
-                soundPlayed = true;
+                soundPlayed = true; // Устанавливаем флаг, что звук сыгран
             }
         } else {
             display.classList.remove('danger');
         }
         
+        // Сбрасываем флаг звука, когда таймер заканчивается или сбрасывается
         if (seconds === 0) {
             soundPlayed = false;
-            // Вибро при завершении таймера
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200, 100, 200]);
-            }
         }
     }
 
     function playBeepSound() {
-        // Пробуем использовать аудио элемент
         if (timerBeep) {
-            timerBeep.currentTime = 0;
-            const playPromise = timerBeep.play();
+            timerBeep.currentTime = 0; // Перематываем в начало
             
-            if (playPromise !== undefined) {
-                playPromise.catch(e => {
-                    console.log("Audio element failed, using Web Audio");
-                    playWebAudioBeep();
-                });
-            }
+            // Пытаемся воспроизвести внешний звук
+            timerBeep.play().catch(e => {
+                console.log("Не удалось воспроизвести внешний звук, пробуем встроенный:", e);
+                
+                // Пробуем использовать встроенный звук через Web Audio API
+                try {
+                    // Создаём простой звуковой сигнал
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800; // Частота
+                    oscillator.type = 'sine'; // Тип волны
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                    
+                    console.log("Воспроизведён встроенный звук");
+                } catch (innerError) {
+                    console.log("Не удалось воспроизвести звук вообще:", innerError);
+                    
+                    // Показываем визуальное предупреждение
+                    display.style.animation = "pulse 0.5s infinite";
+                    setTimeout(() => {
+                        display.style.animation = "";
+                    }, 5000);
+                }
+            });
         } else {
-            playWebAudioBeep();
-        }
-    }
-
-    function playWebAudioBeep() {
-        try {
-            initAudioContext();
-            if (!audioContext || audioContext.state === 'suspended') {
-                if (audioContext) audioContext.resume();
-                return;
+            console.log("Аудио-элемент не найден");
+            
+            // Пробуем встроенный звук как запасной вариант
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log("Не удалось создать звук:", e);
             }
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-        } catch (e) {
-            console.log("Web Audio also failed:", e);
         }
     }
 
     startBtn.onclick = () => {
         if (!isRunning && seconds > 0) {
             isRunning = true;
-            soundPlayed = false;
+            soundPlayed = false; // Сбрасываем флаг при старте
             timerInterval = setInterval(() => {
                 if (seconds > 0) {
                     seconds--;
@@ -394,7 +377,7 @@ function initTimer() {
         isRunning = false;
         clearInterval(timerInterval);
         seconds = 60;
-        soundPlayed = false;
+        soundPlayed = false; // Сбрасываем флаг при сбросе
         updateDisplay();
     };
 
@@ -402,7 +385,7 @@ function initTimer() {
         isRunning = false;
         clearInterval(timerInterval);
         seconds = 90;
-        soundPlayed = false;
+        soundPlayed = false; // Сбрасываем флаг при установке нового времени
         updateDisplay();
     };
 
@@ -442,22 +425,3 @@ function checkWinCondition() {
         setTimeout(() => alert(`💀 ПОБЕДА МАФИИ! (Мафия: ${mafiaCount} / Мирные: ${civCount})`), 100);
     }
 }
-
-// iOS специфичные функции
-window.addEventListener('resize', () => {
-    // Фикс для пересчета высоты при повороте iOS
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-});
-
-// Предотвращаем контекстное меню на iOS
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-});
-
-// Предотвращаем выделение текста при долгом нажатии на iOS
-document.addEventListener('selectstart', function(e) {
-    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-    }
-});

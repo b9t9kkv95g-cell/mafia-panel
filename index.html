@@ -2,15 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Мафия Панель">
-    <meta name="theme-color" content="#0f172a">
-    <title>Панель Ведущего Мафии</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель Ведущего</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎭</text></svg>">
 </head>
 <body>
     <div class="app-container">
@@ -96,29 +91,10 @@
     </div>
 
     <!-- Аудио для сигнала таймера -->
-    <audio id="timer-beep" preload="auto" playsinline>
+    <audio id="timer-beep" preload="auto">
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
     </audio>
 
     <script src="app.js"></script>
-    
-    <!-- iOS специфичный скрипт -->
-    <script>
-        // Фикс для 100vh на iOS
-        function setVh() {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        }
-        
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            setVh();
-        });
-        
-        window.addEventListener('resize', setVh);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(setVh, 100);
-        });
-    </script>
 </body>
 </html>
