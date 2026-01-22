@@ -10,21 +10,27 @@
     --accent-gold: #eab308;
     --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    --vh: 1vh; /* Добавлено для iOS фикса 100vh */
+    --vh: 1vh;
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    -webkit-tap-highlight-color: transparent; /* iOS фикс */
-    -webkit-touch-callout: none; /* iOS фикс */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+input, textarea, select {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 html, body {
     height: 100%;
     overflow: hidden;
-    -webkit-text-size-adjust: 100%; /* Предотвращает авто-зум текста на iOS */
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
 }
 
 body {
@@ -36,8 +42,7 @@ body {
     padding: 10px;
     gap: 10px;
     height: 100vh;
-    height: calc(var(--vh, 1vh) * 100); /* iOS фикс для 100vh */
-    touch-action: manipulation; /* Улучшает отзывчивость на мобильных */
+    height: calc(var(--vh, 1vh) * 100);
 }
 
 .app-container {
@@ -45,7 +50,7 @@ body {
     flex-direction: column;
     height: 100%;
     gap: 10px;
-    -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* HEADER */
@@ -53,13 +58,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 15px; /* Уменьшен padding для мобильных */
+    padding: 10px 15px;
     background: var(--panel-bg);
     border-radius: 12px;
     border: 1px solid var(--border-color);
-    min-height: 70px; /* Уменьшена высота для мобильных */
+    min-height: 70px;
     flex-shrink: 0;
-    backdrop-filter: blur(10px); /* Эффект стекла для iOS */
+    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
@@ -70,10 +75,11 @@ body {
 }
 
 .timer-display {
-    font-size: 2.2rem; /* Уменьшен шрифт для мобильных */
+    font-size: 2.2rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     min-width: 110px;
+    text-align: center;
 }
 
 .timer-display.danger {
@@ -99,17 +105,16 @@ button {
     outline: none;
     transition: all 0.2s;
     user-select: none;
-    -webkit-appearance: none; /* iOS фикс для кнопок */
+    -webkit-appearance: none;
     appearance: none;
-    font-family: inherit; /* Наследует шрифт */
+    font-family: inherit;
 }
 
-/* Увеличиваем размеры кнопок для касания на мобильных */
 .btn-icon {
-    width: 44px; /* Увеличено для touch */
+    width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     color: var(--text-primary);
     display: flex;
     justify-content: center;
@@ -119,24 +124,26 @@ button {
 
 .btn-text {
     padding: 0 14px;
-    height: 44px; /* Увеличено для touch */
+    height: 44px;
     display: flex;
     align-items: center;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     color: var(--text-primary);
     font-weight: 600;
     font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .btn-small {
-    padding: 8px 14px; /* Увеличено для touch */
+    padding: 8px 14px;
     font-size: 0.85rem;
     border-radius: 8px;
-    background: rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.25);
     color: var(--accent-blue);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    border: 1px solid rgba(59, 130, 246, 0.4);
     white-space: nowrap;
+    min-height: 36px;
 }
 
 /* MAIN GRID */
@@ -146,10 +153,9 @@ button {
     gap: 15px;
     flex: 1;
     min-height: 0;
-    height: calc(calc(var(--vh, 1vh) * 100) - 100px); /* iOS фикс */
+    height: calc(calc(var(--vh, 1vh) * 100) - 100px);
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 1024px) {
     .main-grid {
         grid-template-columns: 1fr;
@@ -192,7 +198,6 @@ button {
     flex-shrink: 0;
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 768px) {
     .players-header-row {
         grid-template-columns: 30px 1fr 90px 150px;
@@ -209,7 +214,7 @@ button {
     flex: 1;
     min-height: 0;
     padding-right: 4px;
-    -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
 .player-row {
@@ -217,14 +222,13 @@ button {
     grid-template-columns: 35px 1fr 110px 220px;
     align-items: center;
     gap: 8px;
-    padding: 8px; /* Увеличен padding */
-    background: rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.25);
     border-radius: 8px;
-    min-height: 50px; /* Увеличена минимальная высота */
+    min-height: 50px;
     font-size: 0.95rem;
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 768px) {
     .player-row {
         grid-template-columns: 30px 1fr 90px 150px;
@@ -256,57 +260,65 @@ button {
     background: transparent;
     border: none;
     color: var(--text-primary);
-    padding: 8px; /* Увеличен padding */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 16px; /* Фикс для iOS zoom - 16px предотвращает авто-зум */
-    height: 40px; /* Увеличена высота */
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 16px;
+    height: 40px;
     font-family: inherit;
 }
 
 .role-select {
     width: 100%;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-secondary);
-    border-radius: 4px;
-    padding: 8px; /* Увеличен padding */
+    border-radius: 6px;
+    padding: 8px;
     cursor: pointer;
     font-size: 0.85rem;
-    height: 40px; /* Увеличена высота */
-    -webkit-appearance: none; /* iOS фикс для select */
-    appearance: none;
+    height: 40px;
     font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-.role-select.mafia { color: var(--accent-red); border-color: var(--accent-red); }
-.role-select.sheriff { color: var(--accent-green); border-color: var(--accent-green); }
-.role-select.don { color: var(--accent-gold); border-color: var(--accent-gold); }
+.role-select.mafia { 
+    color: var(--accent-red); 
+    border-color: var(--accent-red); 
+}
+.role-select.sheriff { 
+    color: var(--accent-green); 
+    border-color: var(--accent-green); 
+}
+.role-select.don { 
+    color: var(--accent-gold); 
+    border-color: var(--accent-gold); 
+}
 
 .player-controls-group {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 8px; /* Увеличен padding */
+    padding: 4px 6px;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
 .control-cluster {
     display: flex;
     align-items: center;
-    gap: 6px; /* Увеличен gap */
+    gap: 4px;
 }
 
-/* Увеличиваем размер точек для касания на мобильных */
 .foul-dot, .pred-dot {
-    width: 16px; /* Увеличено для touch */
+    width: 16px;
     height: 16px;
+    min-width: 16px;
+    min-height: 16px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
     cursor: pointer;
     border: 1px solid transparent;
-    min-width: 16px; /* Гарантирует минимальный размер */
-    min-height: 16px;
 }
 
 .foul-dot.active { background: var(--accent-gold); }
@@ -319,7 +331,7 @@ button {
     cursor: pointer;
     font-size: 1rem;
     padding: 0 4px;
-    width: 32px; /* Увеличено для touch */
+    width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
@@ -337,7 +349,6 @@ button {
     height: 100%;
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 1024px) {
     .control-panel {
         height: auto;
@@ -381,27 +392,33 @@ button {
 .candidate-chip {
     background: var(--accent-blue);
     color: white;
-    padding: 6px 12px; /* Увеличен padding */
+    padding: 6px 12px;
     border-radius: 16px;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 4px;
     font-size: 0.85rem;
+    min-height: 32px;
 }
 
-/* Увеличиваем размер кнопок голосования для touch */
+.voting-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .vote-btn {
-    width: 44px; /* Увеличено для touch */
+    width: 44px;
     height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--text-primary);
     font-weight: 700;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 1rem; /* Увеличен шрифт */
-    min-width: 44px; /* Гарантирует минимальный размер */
-    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 1rem;
 }
 
 .vote-btn.selected {
@@ -421,7 +438,6 @@ button {
     margin-bottom: 10px;
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 768px) {
     .night-grid {
         grid-template-columns: 1fr;
@@ -431,9 +447,9 @@ button {
 .night-action {
     display: flex;
     flex-direction: column;
-    gap: 6px; /* Увеличен gap */
+    gap: 4px;
     background: rgba(0, 0, 0, 0.2);
-    padding: 10px; /* Увеличен padding */
+    padding: 10px;
     border-radius: 8px;
 }
 
@@ -451,25 +467,26 @@ button {
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 10px; /* Увеличен padding */
+    padding: 10px;
     border-radius: 8px;
     width: 100%;
     font-size: 0.9rem;
-    height: 44px; /* Увеличена высота */
-    -webkit-appearance: none; /* iOS фикс для select */
-    appearance: none;
+    height: 44px;
     font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .btn-full-width {
     width: 100%;
-    padding: 14px; /* Увеличен padding */
+    padding: 14px;
     background: var(--accent-blue);
     color: white;
     border-radius: 8px;
     font-weight: 600;
-    font-size: 1rem; /* Увеличен шрифт */
-    min-height: 50px; /* Минимальная высота для touch */
+    font-size: 1rem;
+    min-height: 50px;
+    margin-top: 10px;
 }
 
 /* ЗАМЕТКИ */
@@ -493,12 +510,11 @@ textarea#game-notes {
     font-size: 0.9rem;
     line-height: 1.4;
     min-height: 120px;
-    font-size: 16px; /* Фикс для iOS zoom */
 }
 
 /* SCROLLBAR */
 ::-webkit-scrollbar {
-    width: 6px; /* Увеличен для мобильных */
+    width: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -514,6 +530,10 @@ textarea#game-notes {
     }
     
     .btn-icon, .vote-btn {
-        cursor: default; /* На iOS нет курсора */
+        cursor: default;
+    }
+    
+    select {
+        cursor: pointer;
     }
 }

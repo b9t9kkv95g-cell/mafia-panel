@@ -11,6 +11,7 @@ function initApp() {
 }
 
 let soundPlayed = false;
+let audioContext = null;
 
 // --- PLAYERS LOGIC ---
 const ROLES = [
@@ -241,11 +242,10 @@ window.removeCandidate = function(num) {
     }
 };
 
-// --- TIMER LOGIC --- (ОПТИМИЗИРОВАНО ДЛЯ iOS)
+// --- TIMER LOGIC (ОПТИМИЗИРОВАНО ДЛЯ iOS) ---
 let timerInterval;
 let seconds = 60;
 let isRunning = false;
-let audioContext = null;
 
 function initTimer() {
     const display = document.getElementById('timer');
@@ -317,7 +317,7 @@ function initTimer() {
         if (seconds === 0) {
             soundPlayed = false;
             // Вибро при завершении таймера
-            if (navigator.vibrate && seconds === 0) {
+            if (navigator.vibrate) {
                 navigator.vibrate([200, 100, 200, 100, 200]);
             }
         }
@@ -331,4 +331,133 @@ function initTimer() {
             
             if (playPromise !== undefined) {
                 playPromise.catch(e => {
-                    console.log("Audio element
+                    console.log("Audio element failed, using Web Audio");
+                    playWebAudioBeep();
+                });
+            }
+        } else {
+            playWebAudioBeep();
+        }
+    }
+
+    function playWebAudioBeep() {
+        try {
+            initAudioContext();
+            if (!audioContext || audioContext.state === 'suspended') {
+                if (audioContext) audioContext.resume();
+                return;
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        } catch (e) {
+            console.log("Web Audio also failed:", e);
+        }
+    }
+
+    startBtn.onclick = () => {
+        if (!isRunning && seconds > 0) {
+            isRunning = true;
+            soundPlayed = false;
+            timerInterval = setInterval(() => {
+                if (seconds > 0) {
+                    seconds--;
+                    updateDisplay();
+                } else {
+                    isRunning = false;
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+        }
+    };
+
+    pauseBtn.onclick = () => {
+        if (isRunning) {
+            isRunning = false;
+            clearInterval(timerInterval);
+        }
+    };
+
+    resetBtn.onclick = () => {
+        isRunning = false;
+        clearInterval(timerInterval);
+        seconds = 60;
+        soundPlayed = false;
+        updateDisplay();
+    };
+
+    set130Btn.onclick = () => {
+        isRunning = false;
+        clearInterval(timerInterval);
+        seconds = 90;
+        soundPlayed = false;
+        updateDisplay();
+    };
+
+    updateDisplay();
+}
+
+function initRestart() {
+    const restartBtn = document.getElementById('btn-restart-legacy');
+    if (restartBtn) {
+        restartBtn.onclick = () => {
+            if (confirm('Вы уверены, что хотите сбросить ВСЮ игру?')) {
+                location.reload();
+            }
+        };
+    }
+}
+
+// --- WIN CONDITION LOGIC ---
+function checkWinCondition() {
+    let mafiaCount = 0;
+    let civCount = 0;
+    const rows = document.querySelectorAll('.player-row');
+    rows.forEach(row => {
+        if (row.classList.contains('dead')) return;
+        const roleSelect = row.querySelector('.role-select');
+        const role = roleSelect.value;
+        if (role === 'mafia' || role === 'don') {
+            mafiaCount++;
+        } else {
+            civCount++;
+        }
+    });
+
+    if (mafiaCount === 0) {
+        setTimeout(() => alert('🏆 ПОБЕДА МИРНЫХ! Мафия уничтожена.'), 100);
+    } else if (mafiaCount >= civCount) {
+        setTimeout(() => alert(`💀 ПОБЕДА МАФИИ! (Мафия: ${mafiaCount} / Мирные: ${civCount})`), 100);
+    }
+}
+
+// iOS специфичные функции
+window.addEventListener('resize', () => {
+    // Фикс для пересчета высоты при повороте iOS
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+});
+
+// Предотвращаем контекстное меню на iOS
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+// Предотвращаем выделение текста при долгом нажатии на iOS
+document.addEventListener('selectstart', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+    }
+});
