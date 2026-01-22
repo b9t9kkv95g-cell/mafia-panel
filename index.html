@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Мафия Панель">
+    <meta name="theme-color" content="#0f172a">
+    <title>Панель Ведущего Мафии</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎭</text></svg>">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER / TIMER SECTION -->
+        <header class="top-bar">
+            <div class="timer-section">
+                <div class="timer-display" id="timer">01:00</div>
+                <div class="timer-controls">
+                    <button id="btn-start" class="btn-icon"><i class="fas fa-play"></i></button>
+                    <button id="btn-pause" class="btn-icon"><i class="fas fa-pause"></i></button>
+                    <button id="btn-reset" class="btn-icon"><i class="fas fa-undo"></i></button>
+                    <button id="btn-set130" class="btn-text">1:30</button>
+                    <button id="btn-restart-legacy" class="btn-text" style="color: var(--accent-red);">
+                        <i class="fas fa-trash"></i> Сброс
+                    </button>
+                </div>
+            </div>
+            <div class="phase-display">
+                <h2>Mafia Elysium</h2>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- LEFT COLUMN: PLAYERS -->
+            <section class="players-panel">
+                <div class="panel-header">
+                    <h3>Игроки (1-10)</h3>
+                    <button id="btn-shuffle" class="btn-small"><i class="fas fa-random"></i> Шафл ролей</button>
+                </div>
+                <div class="players-header-row">
+                    <span>#</span>
+                    <span>Ник</span>
+                    <span>Роль</span>
+                    <span>ФОЛЛ/ПРЕД/ПОДНЯТИЕ</span>
+                </div>
+                <div class="players-list" id="players-list"></div>
+            </section>
+
+            <!-- RIGHT COLUMN: CONTROL PANEL -->
+            <section class="control-panel">
+                <!-- ГОЛОСОВАНИЕ -->
+                <div class="voting-box glass-panel">
+                    <h3>Голосование</h3>
+                    <div class="voting-candidates">
+                        <span style="color: var(--text-secondary); font-size: 0.85rem;">Порядок:</span>
+                        <div id="voting-order-display" class="order-sequence"></div>
+                    </div>
+                    <div class="voting-buttons" id="voting-buttons"></div>
+                </div>
+
+                <!-- НОЧНЫЕ ДЕЙСТВИЯ -->
+                <div class="night-box glass-panel">
+                    <h3>Ночные действия</h3>
+                    <div class="night-grid">
+                        <div class="night-action">
+                            <label class="mafia-label"><i class="fas fa-crosshairs"></i> Мафия:</label>
+                            <select id="action-mafia" class="player-select"></select>
+                        </div>
+                        <div class="night-action">
+                            <label class="don-label"><i class="fas fa-chess-king"></i> Дон:</label>
+                            <select id="action-don" class="player-select"></select>
+                        </div>
+                        <div class="night-action">
+                            <label class="sheriff-label"><i class="fas fa-star"></i> Шериф:</label>
+                            <select id="action-sheriff" class="player-select"></select>
+                        </div>
+                        <div class="night-action">
+                            <label class="doc-label"><i class="fas fa-briefcase-medical"></i> Доктор:</label>
+                            <select id="action-doc" class="player-select"></select>
+                        </div>
+                    </div>
+                    <button id="btn-process-night" class="btn-full-width">Применить ночь</button>
+                    <div id="night-result" style="margin-top: 10px; font-size: 0.85rem; min-height: 20px;"></div>
+                </div>
+
+                <!-- ЗАМЕТКИ -->
+                <div class="notes-box glass-panel">
+                    <h3>Заметки</h3>
+                    <textarea id="game-notes" placeholder="Ваши мысли и записи..."></textarea>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Аудио для сигнала таймера -->
+    <audio id="timer-beep" preload="auto" playsinline>
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="app.js"></script>
+    
+    <!-- iOS специфичный скрипт -->
+    <script>
+        // Фикс для 100vh на iOS
+        function setVh() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        // Активация аудио на iOS
+        function activateAudio() {
+            const audio = document.getElementById('timer-beep');
+            if (audio) {
+                audio.volume = 0.0001;
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }).catch(e => console.log('iOS audio init'));
+            }
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            setVh();
+            // Активируем аудио при первом касании
+            document.addEventListener('touchstart', activateAudio, { once: true });
+        });
+        
+        window.addEventListener('resize', setVh);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setVh, 100);
+        });
+        
+        // Предотвращаем масштабирование
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) { e.preventDefault(); }
+        }, { passive: false });
+        
+        // Предотвращаем контекстное меню
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
